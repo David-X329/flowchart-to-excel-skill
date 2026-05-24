@@ -7,7 +7,7 @@ Ideal for: business analysts, process engineers, and anyone who needs to convert
 ## Features
 
 - 🧠 **Smart OCR** — Preprocesses images (contrast + sharpening) for accurate text recognition
-- 🃏 **6-card extraction** — Parses 2×3 grid flowcharts
+- 🃏 **step card extraction** — Parses grid flowcharts
 - 🏷️ **Role recognition** — 20+ known role keywords + context inference engine
 - 🔗 **System detection** — Auto-detects system names from card bottom
 - 📊 **Excel output** — Clean, formatted `.xlsx` with L4/System/Role/L5 columns

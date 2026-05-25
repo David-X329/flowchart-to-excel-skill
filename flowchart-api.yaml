@@ -1,0 +1,186 @@
+openapi: 3.0.0
+info:
+  title: Flowchart to Excel API
+  description: |
+    Extracts structured data from flowchart images into formatted Excel files.
+
+    ## How it works
+    Upload a flowchart image (PNG/JPEG) as base64, receive an Excel file with columns:
+    - **L4**: Step name/title
+    - **System**: System name (detected from below-card text or lane labels)
+    - **Role**: Role assignment (5-level priority: external labels → lane labels → same-lane inheritance → TBD)
+    - **Auto**: Auto/Manual based on icon detection
+    - **L5**: Full card text
+
+    ## Use in Copilot Studio
+    This API is designed to be used as a **Custom Connector** in Microsoft Copilot Studio.
+    Import this OpenAPI spec into Power Platform → Custom Connectors.
+
+  version: 2.1.0
+  contact:
+    name: David-X329
+    url: https://github.com/David-X329/flowchart-to-excel-skill
+
+servers:
+  - url: https://your-server.azurewebsites.net
+    description: Production server (replace with your Azure deployment URL)
+  - url: http://localhost:5000
+    description: Local development server
+
+paths:
+  /process:
+    post:
+      summary: Process flowchart image
+      description: |
+        Accepts a base64-encoded flowchart image and returns an Excel file with extracted
+        step data (L4, System, Role, Auto, L5 columns).
+
+        The image should contain blue flowchart cards (RGB ~6, 124, 193) with white text.
+        Supports multi-lane, multi-column flowcharts.
+
+      operationId: ProcessFlowchart
+      x-ms-summary: Process Flowchart
+      x-ms-visibility: important
+
+      security:
+        - ApiKeyAuth: []
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlowchartRequest'
+            example:
+              image_base64: "iVBORw0KGgo...(base64-encoded PNG data)"
+
+      responses:
+        "200":
+          description: Excel file with extracted flowchart data
+          content:
+            application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:
+              schema:
+                type: string
+                format: binary
+          headers:
+            X-Card-Count:
+              schema:
+                type: integer
+              description: Number of cards processed
+            X-Processed-At:
+              schema:
+                type: string
+              description: Processing timestamp (UTC)
+        "400":
+          description: Invalid request (bad base64, image too small)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "401":
+          description: Missing or invalid API key
+        "422":
+          description: No cards detected in image
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "500":
+          description: Server processing error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /health:
+    get:
+      summary: Health check
+      operationId: HealthCheck
+      x-ms-summary: Health Check
+      x-ms-visibility: internal
+      responses:
+        "200":
+          description: Service health status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [healthy, degraded]
+                  dependencies:
+                    type: object
+                    properties:
+                      tesseract:
+                        type: string
+                      pillow:
+                        type: string
+                      openpyxl:
+                        type: string
+                      numpy:
+                        type: string
+                  version:
+                    type: string
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication (optional - only if API_KEY env var is set on server)
+
+  schemas:
+    FlowchartRequest:
+      type: object
+      required:
+        - image_base64
+      properties:
+        image_base64:
+          type: string
+          description: |
+            Base64-encoded PNG or JPEG image of the flowchart.
+            Can include data URI prefix (data:image/png;base64,...) or raw base64.
+            Image should contain blue cards (~RGB 6,124,193) with white text.
+          example: "iVBORw0KGgoAAAANS..."
+      title: Flowchart Request
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Short error description
+        detail:
+          type: string
+          description: Detailed error message
+      title: Error Response
+
+    FlowchartResponse:
+      type: object
+      properties:
+        cards:
+          type: array
+          items:
+            type: object
+            properties:
+              L4:
+                type: string
+                description: Step name/title
+              System:
+                type: string
+                description: System name (or "Offline")
+              Role:
+                type: string
+                description: Role assignment
+              Auto:
+                type: string
+                description: Auto/Manual/(empty)
+              L5:
+                type: string
+                description: Full card text
+        count:
+          type: integer
+          description: Number of cards processed
+      title: Flowchart Response

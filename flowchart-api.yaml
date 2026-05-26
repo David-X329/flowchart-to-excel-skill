@@ -6,17 +6,17 @@ info:
 
     ## How it works
     Upload a flowchart image (PNG/JPEG) as base64, receive an Excel file with columns:
-    - **L4**: Step name/title
+    - **Step**: Step name/title (card center text)
     - **System**: System name (detected from below-card text or lane labels)
     - **Role**: Role assignment (5-level priority: external labels → lane labels → same-lane inheritance → TBD)
-    - **Auto**: Auto/Manual based on icon detection
-    - **L5**: Full card text
+    - **Automated or Manual**: Auto/Manual based on icon detection (gear icon → Auto, person icon → Manual)
+    - **Activity**: Full card text / detailed description
 
     ## Use in Copilot Studio
     This API is designed to be used as a **Custom Connector** in Microsoft Copilot Studio.
     Import this OpenAPI spec into Power Platform → Custom Connectors.
 
-  version: 2.1.0
+  version: 2.2.0
   contact:
     name: David-X329
     url: https://github.com/David-X329/flowchart-to-excel-skill
@@ -33,7 +33,7 @@ paths:
       summary: Process flowchart image
       description: |
         Accepts a base64-encoded flowchart image and returns an Excel file with extracted
-        step data (L4, System, Role, Auto, L5 columns).
+        step data (Step, System, Role, Automated or Manual, Activity columns).
 
         The image should contain blue flowchart cards (RGB ~6, 124, 193) with white text.
         Supports multi-lane, multi-column flowcharts.
@@ -165,7 +165,7 @@ components:
           items:
             type: object
             properties:
-              L4:
+              Step:
                 type: string
                 description: Step name/title
               System:
@@ -174,10 +174,10 @@ components:
               Role:
                 type: string
                 description: Role assignment
-              Auto:
+              Automated or Manual:
                 type: string
                 description: Auto/Manual/(empty)
-              L5:
+              Activity:
                 type: string
                 description: Full card text
         count:

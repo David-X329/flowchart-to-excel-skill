@@ -1,41 +1,56 @@
 # Flowchart Layout Guide
 
-This skill expects flowcharts with the following layout:
+This skill handles flowcharts with the following characteristics:
 
+## Supported Layout Types
+
+### 1. Swimlane (Primary)
+```
+| Customer Journey | [Card 1]             | [Card 3]        |
+| Partner          |       [Card 2]       |      [Card 4]   |
+| Deal Desk        |             [Card 5] |                 |
+```
+
+Lanes run horizontally from left to right. Lane labels appear in the left sidebar area and determine the **Role** column.
+
+### 2. Grid (Fallback)
 ```
 ┌────────────┐  ┌────────────┐  ┌────────────┐
-│            │  │            │  │            │
 │  Card 1    │→ │  Card 2    │→ │  Card 3    │
-│  (Top-L)   │  │  (Top-M)   │  │  (Top-R)   │
-│            │  │            │  │            │
 └────────────┘  └────────────┘  └────────────┘
      ↓               ↓               ↓
 ┌────────────┐  ┌────────────┐  ┌────────────┐
-│            │  │            │  │            │
 │  Card 4    │→ │  Card 5    │→ │  Card 6    │
-│  (Bot-L)   │  │  (Bot-M)   │  │  (Bot-R)   │
-│            │  │            │  │            │
 └────────────┘  └────────────┘  └────────────┘
 ```
 
-## Coordinate Map (pixels)
+Cards in a 2-row grid with optional lane labels. Cards are ordered left-to-right, top-to-bottom.
 
-| Region | x1 | y1 | x2 | y2 |
-|--------|----|----|----|----|
-| Card 1 (Top-Left) | 310 | 120 | 440 | 225 |
-| Card 2 (Top-Mid) | 480 | 120 | 615 | 225 |
-| Card 3 (Top-Right) | 660 | 120 | 800 | 225 |
-| Card 4 (Bot-Left) | 310 | 240 | 440 | 340 |
-| Card 5 (Bot-Mid) | 480 | 240 | 615 | 340 |
-| Card 6 (Bot-Right) | 660 | 240 | 800 | 340 |
-| Left Lane Row 1 | 86 | 55 | 310 | 215 |
-| Left Lane Row 2 | 86 | 215 | 310 | 335 |
+## Step Card Detection
+
+Step cards are **shaded blue rectangles** detected via connected-component analysis:
+
+- **Blue threshold**: b > r+30 AND b > g+30 AND b > 100
+- **Size range**: Width 50–250px, Height 25–100px (adjustable)
+- Cards must be horizontally aligned (sufficient blue pixels in center row)
 
 ## Card Contents
 
 Each card typically contains:
 
-1. **Step name** (top area → L4) — e.g. "Receive Customer Complaint"
-2. **System name** (bottom area → System) — e.g. "CRM", "ERP"
-3. **Description** (middle area → L5) — full step text
-4. **Role/actor** (sometimes explicit in text → Role)
+1. **Step text** (center area → **Step** column) — e.g. "Send Prepopulated Deck"
+2. **System text** (below the card → **System** column) — e.g. "CRM", "SAP BPC"
+3. **Description** (full card text → **Activity** column) — detailed step description
+4. **Role/actor** (external labels, lane labels, or inherited → **Role** column)
+
+## Automation Detection
+
+Icons on each card determine the **Automated or Manual** column:
+
+- **Auto**: Gear/cog icon → center density check detects hollow center
+- **Manual**: Person/user icon → solid center or no icon detected
+- **None**: No detectable icon → blank
+
+## Lane Labels
+
+Left-side lane/role labels are detected by scanning the left sidebar (x=0–200px) for text clusters grouped by y-range. These map to the **Role** column via the 5-level priority system.

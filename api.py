@@ -39,8 +39,8 @@ from flowchart_pipeline import process_flowchart, create_excel
 
 app = FastAPI(
     title="Flowchart to Excel API",
-    description="Extract structured data (L4, System, Role, Auto, L5) from flowchart images",
-    version="2.1.0"
+    description="Extract structured data (Step, System, Role, Automated or Manual, Activity) from flowchart images",
+    version="2.2.0"
 )
 
 API_KEY = os.environ.get("API_KEY", "")
@@ -67,7 +67,7 @@ async def root():
     """Health check endpoint."""
     return {
         "service": "Flowchart to Excel API",
-        "version": "2.1.0",
+        "version": "2.2.0",
         "status": "running",
         "time": datetime.utcnow().isoformat()
     }
@@ -176,7 +176,7 @@ if __name__ == "__main__":
 
     print(f"""
 ╔══════════════════════════════════════════════╗
-║   Flowchart to Excel API v2.1               ║
+║   Flowchart to Excel API v2.2               ║
 ║   http://{host}:{port}                    ║
 ║   Docs: http://{host}:{port}/docs          ║
 ╚══════════════════════════════════════════════╝

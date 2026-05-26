@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Flowchart Processor — Full Pipeline (v2.1)
+Flowchart Processor — Full Pipeline (v2.2)
 ============================================
 Encapsulates all rules from SKILL.md into a reusable module.
 Used by the REST API to process flowchart images.
@@ -27,9 +27,10 @@ from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 # Constants
 # ═══════════════════════════════════════════════════════════════════
 
-MIN_CARD_WIDTH = 70
+MIN_CARD_WIDTH = 50
 MIN_CARD_HEIGHT = 25
-MAX_CARD_WIDTH = 150  # for standard step cards (lane labels may be wider)
+MAX_CARD_WIDTH = 250  # for standard step cards (lane labels may be wider)
+MAX_CARD_HEIGHT = 100
 ICON_CROP_HEIGHT_RATIO = 0.55
 ICON_CROP_WIDTH_RATIO = 0.35
 CENTER_DENSITY_THRESHOLD = 0.06  # > 6% center white = Manual icon
@@ -54,20 +55,20 @@ SYS_DARK_SCAN_ROW_THRESHOLD = 12
 ICON_SIZE = 38
 
 # Output column widths
-COL_WIDTH_L4 = 40
-COL_WIDTH_SYS = 12
-COL_WIDTH_ROLE = 14
-COL_WIDTH_AUTO = 10
-COL_WIDTH_L5 = 40
+COL_WIDTH_STEP = 40
+COL_WIDTH_SYS = 16
+COL_WIDTH_ROLE = 16
+COL_WIDTH_AUTO = 18
+COL_WIDTH_ACTIVITY = 42
 
 # ═══════════════════════════════════════════════════════════════════
 # Blue detection
 # ═══════════════════════════════════════════════════════════════════
 
 def is_blue_pixel(r, g, b):
-    """Check if pixel is blue per SKILL.md threshold: b>r+60 AND g>r+60 AND b>g+30"""
+    """Check if pixel is blue. Uses relaxed threshold for lighter blue cards."""
     ri, gi, bi = int(r), int(g), int(b)
-    return bi > ri + 60 and gi > ri + 60 and bi > gi + 30
+    return bi > ri + 30 and bi > gi + 30 and bi > 100
 
 
 def is_dark_pixel(r, g, b):
@@ -128,7 +129,7 @@ def detect_cards(img):
                 cw, ch = max_x - min_x, max_y - min_y
 
                 # Filter: only step cards (exclude lane labels, annotations)
-                if cw >= MIN_CARD_WIDTH and ch >= MIN_CARD_HEIGHT and cw <= MAX_CARD_WIDTH:
+                if cw >= MIN_CARD_WIDTH and ch >= MIN_CARD_HEIGHT and cw <= MAX_CARD_WIDTH and ch <= MAX_CARD_HEIGHT:
                     cards.append({
                         "x1": int(min_x), "y1": int(min_y),
                         "x2": int(max_x), "y2": int(max_y),
@@ -480,11 +481,13 @@ def create_excel(cards_data, output_buf=None):
 
     Args:
         cards_data: List of card dicts from process_flowchart()
-        output_buf: BytesIO or path. If None, returns BytesIO.
+        output_buf: BytesIO, file path (str), or None. If None, returns BytesIO.
+                    If str, saves to that path and returns the path.
 
     Returns:
-        io.BytesIO or path
+        io.BytesIO or str (file path)
     """
+    is_path = isinstance(output_buf, str)
     if output_buf is None:
         output_buf = io.BytesIO()
 
@@ -510,10 +513,10 @@ def create_excel(cards_data, output_buf=None):
     title_cell.value = f"Flowchart Extraction — {len(cards_data)} Steps"
     title_cell.font = Font(name="Arial", bold=True, size=14)
     title_cell.alignment = Alignment(horizontal="center", vertical="center")
-    ws.row_dimensions[1].height = 30
+    ws.row_dimensions[1].height = 45
 
     # Header row
-    headers = ["L4", "System", "Role", "Auto", "L5"]
+    headers = ["Step", "System", "Role", "Automated or Manual", "Activity"]
     for col, h in enumerate(headers, 1):
         cell = ws.cell(row=2, column=col, value=h)
         cell.font = hdr_font
@@ -541,17 +544,19 @@ def create_excel(cards_data, output_buf=None):
         ws.row_dimensions[row].height = 45
 
     # Column widths
-    ws.column_dimensions["A"].width = COL_WIDTH_L4
+    ws.column_dimensions["A"].width = COL_WIDTH_STEP
     ws.column_dimensions["B"].width = COL_WIDTH_SYS
     ws.column_dimensions["C"].width = COL_WIDTH_ROLE
     ws.column_dimensions["D"].width = COL_WIDTH_AUTO
-    ws.column_dimensions["E"].width = COL_WIDTH_L5
+    ws.column_dimensions["E"].width = COL_WIDTH_ACTIVITY
 
     # Freeze header + auto-filter
     ws.freeze_panes = "A3"
     ws.auto_filter.ref = f"A2:E{len(cards_data) + 2}"
 
     wb.save(output_buf)
+    if is_path:
+        return output_buf
     output_buf.seek(0)
     return output_buf
 

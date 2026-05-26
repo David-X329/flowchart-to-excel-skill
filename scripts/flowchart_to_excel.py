@@ -2,17 +2,15 @@
 """
 Flowchart → Excel extraction script.
 
-Extracts structured data from flowchart images into Excel (.xlsx) files.
-Layout expected: 2 rows × 3 columns of cards, with left side connector lane.
+⚠️ DEPRECATED: This script only supports 2×3 grid flowcharts with hardcoded coordinates.
+Use `flowchart_pipeline.py` instead for arbitrary swimlane/blue-detection flowcharts.
 
-Output columns: L4, System, Role, L5
+This file is kept for reference only.
+
+Output columns: Step, System, Role, Automated or Manual, Activity
 
 Usage:
     python3 flowchart_to_excel.py <image_path> [output_path]
-
-As a library:
-    from flowchart_to_excel import extract_flowchart
-    cards = extract_flowchart("flowchart.png")
 """
 
 import sys

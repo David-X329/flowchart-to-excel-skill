@@ -1,7 +1,7 @@
 ---
-name: flowchart-to-excel
+name: BOx-flowchart-to-excel
 description: |
-  Extract flowchart data from images into structured Excel/Feishu Sheet files. Use when user provides a flowchart image (process flow, workflow diagram) and asks to convert it into a spreadsheet with columns: L4, System, Role, Auto, L5.
+  Extract flowchart data from images into structured Excel/Feishu Sheet files. Use when user provides a flowchart image (process flow, workflow diagram) and asks to convert it into a spreadsheet with columns: Step, System, Role, Automated or Manual, Activity.
 
   Triggers include requests like: "extract this flowchart to Excel", "convert process diagram to spreadsheet", "识别流程图并生成excel", "把流程图片整理进excel文件".
 
@@ -10,7 +10,7 @@ description: |
 
 # Flowchart → Structured Table Extraction
 
-Extract structured data from flowchart images into Excel (`.xlsx`) with 5 columns: L4, System, Role, Auto, L5.
+Extract structured data from flowchart images into Excel (`.xlsx`) with 5 columns: Step, System, Role, Automated or Manual, Activity.
 
 ## Step Card Definition
 
@@ -199,7 +199,7 @@ Each card has a **small icon** at its **top-left corner** (~38×38px region). Th
 - If the card text itself mentions a system name (e.g. "Login to Power BI") → This is card content, NOT the System column
 - System column only looks at **text below card** and **lane labels**, never card internal text
 
-### L5 Column
+### Activity Column
 - Enter **all visible text** from within the card
 - **Never leave empty** — if OCR cannot read full content, use card title text as fallback
 - Full format: card title + any additional description text inside the card
@@ -271,7 +271,8 @@ else:
 - Header: dark blue (#1F4E79) with white text
 - Auto column: green (#C6EFCE) for Auto, red (#FFC7CE) for Manual
 - Frozen header row, auto-filter enabled
-- Column widths: L4=40, System=12, Role=14, Auto=10, L5=40
+- Header row height: 45px (3× default)
+- Column widths: Step=40, System=16, Role=16, Automated or Manual=18, Activity=42
 - File naming: `flowchart_output{N}.xlsx` (incremental numbering)
 
 ### Voice Confirmation
@@ -315,20 +316,21 @@ As of 2026-05-25, **15 flowcharts** have been successfully processed, covering:
 ## Output Format
 
 ### Excel (xlsx) via openpyxl
-- Header row: L4, System, Role, Auto, L5
+- Header row: Step | System | Role | Automated or Manual | Activity
+- Header row height: 45px (3× default row height)
 - Each flowchart image = its own new xlsx file (do NOT append to existing files)
 
 ### Column Mapping
 
 | Column | Name | Content Rule |
 |--------|------|-------------|
-| A | **L4** | Card step name/title (first line of text, cleaned) |
+| A | **Step** | Card step name/title (first line of text, cleaned) |
 | B | **System** | System name; if not identified → "Offline" |
 | C | **Role** | Role determined per priority logic above |
-| D | **Auto** | Auto/Manual/User/(empty) based on icon analysis |
-| E | **L5** | All visible card text; never leave empty |
+| D | **Automated or Manual** | Auto/Manual/User/(empty) based on icon analysis |
+| E | **Activity** | All visible card text; never leave empty |
 
-**Color coding for Auto column:**
+**Color coding for Automated or Manual column:**
 - `Auto` → Green - automated step
 - `Manual` → Red - manual step  
 - `User` → Yellow - user action required

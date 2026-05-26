@@ -1,4 +1,4 @@
-# Flowchart → Excel Skill 🖼️→📊
+# BOx Flowchart → Excel Skill 🖼️→📊
 
 **An AI Agent skill that extracts structured data from flowchart images into Excel files.**
 
